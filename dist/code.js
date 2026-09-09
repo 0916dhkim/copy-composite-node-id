@@ -6,8 +6,9 @@
   // src/code.ts
   function getCopyPayload(node) {
     const id = node.id;
-    const fileKey = figma.fileKey || "";
-    const docUrl = fileKey ? `https://www.figma.com/design/${fileKey}/?node-id=${encodeURIComponent(id)}&m=dev` : "";
+    const fileKey = figma.fileKey;
+    const docName = figma.root.name ? encodeURIComponent(figma.root.name) : "";
+    const docUrl = fileKey ? `https://www.figma.com/design/${fileKey}/${docName}?node-id=${encodeURIComponent(id)}&m=dev` : "";
     const text = docUrl ? `${docUrl}
 ${id}` : id;
     return {
