@@ -43,33 +43,25 @@ function showInspectPanel(): void {
 function copySelectedNodeAndClose(): void {
   const payload = getSelectionPayload();
   if (!payload) {
-    figma.notify("Select a layer first.", { error: true });
+    figma.notify("⚠️ Select a layer first", { error: true });
     figma.closePlugin();
     return;
   }
 
-  // A 0x0 offscreen UI is required so the browser DOM allows clipboard focus and copy
-  figma.showUI(uiHtml, { visible: true, width: 0, height: 0 });
-
-  let sent = false;
-  const sendCopy = () => {
-    if (sent) return;
-    sent = true;
-    figma.ui.postMessage({ type: "copy", text: payload.text });
-  };
-
-  sendCopy();
+  // 1x1 offscreen window allows browser to grant clipboard focus
+  figma.showUI(uiHtml, { visible: true, width: 1, height: 1, position: { x: -9999, y: -9999 } });
 
   figma.ui.onmessage = (message) => {
     if (message.type === "ready") {
-      sendCopy();
+      figma.ui.postMessage({ type: "copy", text: payload.text });
     }
 
     if (message.type === "copy-result") {
-      figma.notify(
-        message.success ? `Copied composite node ID for "${payload.name}"` : "Could not copy to clipboard",
-        { error: !message.success },
-      );
+      if (message.success) {
+        figma.notify(`📋 Copied composite node ID for "${payload.name}"`);
+      } else {
+        figma.notify("⚠️ Could not copy to clipboard", { error: true });
+      }
       figma.closePlugin();
     }
   };

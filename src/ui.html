@@ -46,52 +46,51 @@
         background: var(--figma-color-bg-success, #18a957);
         color: #fff;
       }
+
+      #hidden-ta {
+        position: fixed;
+        left: -9999px;
+        top: -9999px;
+        width: 20px;
+        height: 20px;
+        opacity: 0;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
+    <textarea id="hidden-ta"></textarea>
     <button id="copy-btn" type="button" disabled>Select a layer</button>
 
     <script>
       let currentPayload = null;
       let resetTimer = null;
       const copyBtn = document.getElementById("copy-btn");
+      const hiddenTa = document.getElementById("hidden-ta");
 
       function post(message) {
         parent.postMessage({ pluginMessage: message }, "*");
       }
 
       async function copyText(text) {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
+        let success = false;
+        try {
+          hiddenTa.value = text;
+          window.focus();
+          hiddenTa.focus();
+          hiddenTa.select();
+          hiddenTa.setSelectionRange(0, text.length);
+          success = document.execCommand("copy");
+        } catch (_) {}
+
+        if (!success && navigator.clipboard && navigator.clipboard.writeText) {
           try {
             await navigator.clipboard.writeText(text);
-            return true;
+            success = true;
           } catch (_) {}
         }
 
-        try {
-          const prevActive = document.activeElement;
-          const textarea = document.createElement("textarea");
-          textarea.value = text;
-          textarea.style.position = "fixed";
-          textarea.style.left = "-9999px";
-          textarea.style.top = "-9999px";
-          textarea.style.width = "2em";
-          textarea.style.height = "2em";
-          document.body.appendChild(textarea);
-
-          window.focus();
-          textarea.focus();
-          textarea.select();
-
-          const copied = document.execCommand("copy");
-          textarea.remove();
-          if (prevActive && prevActive.focus) {
-            prevActive.focus();
-          }
-          return copied;
-        } catch (_) {
-          return false;
-        }
+        return success;
       }
 
       function updateUI(payload) {
