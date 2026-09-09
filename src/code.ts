@@ -1,36 +1,33 @@
 import uiHtml from "./ui.html";
 
-type NodeDetails = {
+type CopyPayload = {
+  text: string;
   name: string;
-  type: string;
-  id: string;
-  aiLink: string;
 };
 
-function getNodeDetails(node: SceneNode): NodeDetails {
+function getCopyPayload(node: SceneNode): CopyPayload {
   const id = node.id;
   const fileKey = figma.fileKey || "";
-  const aiLink = fileKey
+  const docUrl = fileKey
     ? `https://www.figma.com/design/${fileKey}/?node-id=${encodeURIComponent(id)}&m=dev`
-    : id;
+    : "";
+  const text = docUrl ? `${docUrl}\n${id}` : id;
   return {
+    text,
     name: node.name,
-    type: node.type,
-    id,
-    aiLink,
   };
 }
 
-function selectedNodeDetails(): NodeDetails | null {
+function getSelectionPayload(): CopyPayload | null {
   const node = figma.currentPage.selection[0];
-  return node ? getNodeDetails(node) : null;
+  return node ? getCopyPayload(node) : null;
 }
 
 function showInspectPanel(): void {
-  figma.showUI(uiHtml, { themeColors: true });
+  figma.showUI(uiHtml, { themeColors: true, height: 48 });
 
   const updateSelection = () => {
-    figma.ui.postMessage({ type: "selection", node: selectedNodeDetails() });
+    figma.ui.postMessage({ type: "selection", payload: getSelectionPayload() });
   };
 
   figma.ui.onmessage = (message) => {
@@ -43,9 +40,9 @@ function showInspectPanel(): void {
 }
 
 function copySelectedNodeAndClose(): void {
-  const node = selectedNodeDetails();
-  if (!node) {
-    figma.notify("Select a layer before copying its AI link.", { error: true });
+  const payload = getSelectionPayload();
+  if (!payload) {
+    figma.notify("Select a layer first.", { error: true });
     figma.closePlugin();
     return;
   }
@@ -54,12 +51,12 @@ function copySelectedNodeAndClose(): void {
   figma.showUI(uiHtml, { visible: false, themeColors: true });
   figma.ui.onmessage = (message) => {
     if (message.type === "ready") {
-      figma.ui.postMessage({ type: "copy", text: node.aiLink });
+      figma.ui.postMessage({ type: "copy", text: payload.text });
     }
 
     if (message.type === "copy-result") {
       figma.notify(
-        message.success ? "AI link copied to clipboard." : "Could not copy the AI link to the clipboard.",
+        message.success ? `Copied composite node ID for "${payload.name}"` : "Could not copy to clipboard",
         { error: !message.success },
       );
       figma.closePlugin();
@@ -69,21 +66,6 @@ function copySelectedNodeAndClose(): void {
 
 if (figma.mode === "inspect") {
   showInspectPanel();
-} else if (figma.mode === "codegen") {
-  figma.codegen.on("generate", ({ node, language }) => {
-    if (language !== "ai-node-link") {
-      return [];
-    }
-
-    const details = getNodeDetails(node);
-    return [
-      {
-        title: "AI Link",
-        language: "PLAINTEXT",
-        code: `${details.aiLink}\n\nComposite Node ID: ${details.id}`,
-      },
-    ];
-  });
 } else {
   copySelectedNodeAndClose();
 }

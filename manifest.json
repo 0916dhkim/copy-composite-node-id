@@ -5,8 +5,5 @@
   "main": "dist/code.js",
   "ui": "dist/ui.html",
   "editorType": ["figma", "dev"],
-  "capabilities": ["inspect", "codegen", "vscode"],
-  "codegenLanguages": [
-    { "label": "AI Node Link", "value": "ai-node-link" }
-  ]
+  "capabilities": ["inspect", "vscode"]
 }
