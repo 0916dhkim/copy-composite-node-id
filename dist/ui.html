@@ -46,25 +46,15 @@
         background: var(--figma-color-bg-success, #18a957);
         color: #fff;
       }
-
-      #ta {
-        position: absolute;
-        bottom: 0;
-        left: -9999px;
-        opacity: 0;
-        pointer-events: none;
-      }
     </style>
   </head>
   <body>
-    <textarea id="ta" tabindex="-1"></textarea>
     <button id="copy-btn" type="button" disabled>Select a layer</button>
 
     <script>
       let currentPayload = null;
       let resetTimer = null;
       const copyBtn = document.getElementById("copy-btn");
-      const ta = document.getElementById("ta");
 
       function post(message) {
         console.log("[CopyUI] Posting to plugin:", message);
@@ -73,9 +63,19 @@
 
       function execCopy(text) {
         console.log("[CopyUI] execCopy called. Text length:", text ? text.length : 0);
-        ta.value = text;
-        ta.select();
-        ta.setSelectionRange(0, text.length);
+        const copyFrom = document.createElement("textarea");
+        copyFrom.textContent = text;
+        copyFrom.style.position = "fixed";
+        copyFrom.style.left = "0";
+        copyFrom.style.top = "0";
+        copyFrom.style.width = "10px";
+        copyFrom.style.height = "10px";
+        copyFrom.style.opacity = "0.01";
+        document.body.appendChild(copyFrom);
+
+        copyFrom.focus({ preventScroll: true });
+        copyFrom.select();
+
         let success = false;
         try {
           success = document.execCommand("copy");
@@ -83,6 +83,9 @@
         } catch (e) {
           console.error("[CopyUI] execCommand error:", e);
         }
+
+        document.body.removeChild(copyFrom);
+
         if (!success && navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text);
           success = true;

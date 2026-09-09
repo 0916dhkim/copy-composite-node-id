@@ -60,7 +60,7 @@ function copySelectedNodeAndClose(): void {
       }
     };
 
-    figma.showUI(uiHtml, { width: 0, height: 0 });
+    figma.showUI(uiHtml, { width: 1, height: 1 });
     console.log("[CopyPlugin] showUI called, posting copy message");
     figma.ui.postMessage({ type: "copy", text: payload.text });
   } catch (err: any) {
