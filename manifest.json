@@ -12,6 +12,6 @@
     "allowedDomains": ["none"]
   },
   "menu": [
-    { "name": "Open Copy Widget", "command": "open-widget" }
+    { "name": "Open", "command": "open-widget" }
   ]
 }
