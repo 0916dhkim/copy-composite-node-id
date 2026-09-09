@@ -24,9 +24,14 @@ function getSelectionPayload(): CopyPayload | null {
   return node ? getCopyPayload(node) : null;
 }
 
-function showInspectPanel(): void {
+function run(): void {
   try {
-    figma.showUI(uiHtml, { themeColors: true, height: 48 });
+    figma.showUI(uiHtml, {
+      width: 260,
+      height: 48,
+      title: "Copy composite node ID",
+      themeColors: true,
+    });
 
     const updateSelection = () => {
       figma.ui.postMessage({ type: "selection", payload: getSelectionPayload() });
@@ -36,13 +41,17 @@ function showInspectPanel(): void {
       if (message.type === "ready") {
         updateSelection();
       }
+      if (message.type === "copied") {
+        figma.notify(`📋 Copied composite node ID for "${message.name || "selection"}"`);
+        figma.closePlugin();
+      }
     };
 
     figma.on("selectionchange", updateSelection);
   } catch (err: any) {
-    console.error("[CopyPlugin] Error opening inspect panel:", err);
+    console.error("[CopyPlugin] Error opening widget:", err);
     figma.notify("Error: " + (err?.message || String(err)), { error: true });
   }
 }
 
-showInspectPanel();
+run();
