@@ -1,0 +1,13 @@
+{
+  "name": "copy-composite-node-id",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "build": "tsc --noEmit && esbuild src/code.ts --bundle --outfile=dist/code.js --target=es2020 --loader:.html=text && cp src/ui.html dist/ui.html"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.128.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.8.0"
+  }
+}

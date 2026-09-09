@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Copy composite node ID</title>
+    <style>
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        min-width: 0;
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg);
+        font: 12px/1.4 Inter, sans-serif;
+      }
+
+      main { padding: 12px; }
+
+      .card {
+        border: 1px solid var(--figma-color-border);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      .heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--figma-color-border);
+        font-weight: 600;
+      }
+
+      .badge {
+        padding: 2px 6px;
+        border-radius: 10px;
+        color: var(--figma-color-text-secondary);
+        background: var(--figma-color-bg-secondary);
+        font-size: 10px;
+        font-weight: 500;
+      }
+
+      .details { padding: 10px 12px; }
+
+      .label {
+        margin: 10px 0 3px;
+        color: var(--figma-color-text-secondary);
+        font-size: 11px;
+      }
+
+      .label:first-child { margin-top: 0; }
+
+      .value {
+        overflow-wrap: anywhere;
+        color: var(--figma-color-text);
+        font-family: "Roboto Mono", monospace;
+        font-size: 11px;
+        user-select: text;
+      }
+
+      .name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: Inter, sans-serif;
+        font-size: 12px;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 10px 12px;
+        border-top: 1px solid var(--figma-color-border);
+      }
+
+      button {
+        min-width: 0;
+        height: 32px;
+        border: 0;
+        border-radius: 5px;
+        color: var(--figma-color-text-onbrand);
+        background: var(--figma-color-bg-brand);
+        cursor: pointer;
+        font: inherit;
+        font-weight: 600;
+      }
+
+      button:hover { background: var(--figma-color-bg-brand-hover); }
+      button:focus-visible { outline: 2px solid var(--figma-color-border-brand-strong); outline-offset: 2px; }
+      button.secondary { color: var(--figma-color-text); background: var(--figma-color-bg-secondary); }
+      button.secondary:hover { background: var(--figma-color-bg-secondary-hover); }
+      button:disabled { color: var(--figma-color-text-disabled); background: var(--figma-color-bg-disabled); cursor: default; }
+
+      .empty { padding: 20px 12px; color: var(--figma-color-text-secondary); text-align: center; }
+      .feedback { min-height: 17px; padding: 0 12px 10px; color: var(--figma-color-text-success); font-size: 11px; }
+      [hidden] { display: none; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="card" aria-live="polite">
+        <div class="heading">Copy composite node ID <span class="badge" id="node-type">No selection</span></div>
+        <div id="empty-state" class="empty">Select a layer to copy its AI link.</div>
+        <div id="node-details" class="details" hidden>
+          <div class="label">Layer</div>
+          <div id="node-name" class="value name"></div>
+          <div class="label">Composite Node ID</div>
+          <div id="node-id" class="value"></div>
+        </div>
+        <div class="actions">
+          <button id="copy-link" type="button" disabled>Copy AI Link</button>
+          <button id="copy-id" class="secondary" type="button" disabled>Copy Node ID</button>
+        </div>
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+      </section>
+    </main>
+    <script>
+      const state = { node: null, feedbackTimer: null };
+      const element = (id) => document.getElementById(id);
+      const nodeType = element("node-type");
+      const emptyState = element("empty-state");
+      const nodeDetails = element("node-details");
+      const copyLink = element("copy-link");
+      const copyId = element("copy-id");
+      const feedback = element("feedback");
+
+      function post(message) {
+        parent.postMessage({ pluginMessage: message }, "*");
+      }
+
+      async function copyText(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch (_) {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.setAttribute("readonly", "");
+          textarea.style.cssText = "position:fixed;opacity:0;pointer-events:none";
+          document.body.appendChild(textarea);
+          textarea.select();
+          const copied = document.execCommand("copy");
+          textarea.remove();
+          return copied;
+        }
+      }
+
+      function showFeedback(message, success) {
+        feedback.textContent = message;
+        feedback.style.color = success
+          ? "var(--figma-color-text-success)"
+          : "var(--figma-color-text-danger)";
+        clearTimeout(state.feedbackTimer);
+        state.feedbackTimer = setTimeout(() => { feedback.textContent = ""; }, 1800);
+      }
+
+      function render() {
+        const node = state.node;
+        const hasNode = node !== null;
+        nodeType.textContent = hasNode ? node.type : "No selection";
+        emptyState.hidden = hasNode;
+        nodeDetails.hidden = !hasNode;
+        copyLink.disabled = !hasNode;
+        copyId.disabled = !hasNode;
+        if (hasNode) {
+          element("node-name").textContent = node.name;
+          element("node-id").textContent = node.id;
+        }
+      }
+
+      copyLink.addEventListener("click", async () => {
+        const success = await copyText(state.node.aiLink);
+        showFeedback(success ? "AI link copied" : "Copy failed", success);
+      });
+
+      copyId.addEventListener("click", async () => {
+        const success = await copyText(state.node.id);
+        showFeedback(success ? "Node ID copied" : "Copy failed", success);
+      });
+
+      window.addEventListener("message", async (event) => {
+        const message = event.data.pluginMessage;
+        if (!message) return;
+
+        if (message.type === "selection") {
+          state.node = message.node;
+          render();
+        }
+
+        if (message.type === "copy") {
+          post({ type: "copy-result", success: await copyText(message.text) });
+        }
+      });
+
+      post({ type: "ready" });
+    </script>
+  </body>
+</html>

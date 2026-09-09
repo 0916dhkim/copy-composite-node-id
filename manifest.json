@@ -1,0 +1,12 @@
+{
+  "name": "Copy composite node ID",
+  "id": "copy-composite-node-id",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["figma", "dev"],
+  "capabilities": ["inspect", "codegen", "vscode"],
+  "codegenLanguages": [
+    { "label": "AI Node Link", "value": "ai-node-link" }
+  ]
+}
