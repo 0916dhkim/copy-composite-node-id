@@ -47,49 +47,41 @@
         color: #fff;
       }
 
-      #hidden-ta {
-        position: fixed;
+      #ta {
+        position: absolute;
+        bottom: 0;
         left: -9999px;
-        top: -9999px;
-        width: 20px;
-        height: 20px;
         opacity: 0;
         pointer-events: none;
       }
     </style>
   </head>
   <body>
-    <textarea id="hidden-ta"></textarea>
+    <textarea id="ta" tabindex="-1"></textarea>
     <button id="copy-btn" type="button" disabled>Select a layer</button>
 
     <script>
       let currentPayload = null;
       let resetTimer = null;
       const copyBtn = document.getElementById("copy-btn");
-      const hiddenTa = document.getElementById("hidden-ta");
+      const ta = document.getElementById("ta");
 
       function post(message) {
         parent.postMessage({ pluginMessage: message }, "*");
       }
 
-      async function copyText(text) {
+      function execCopy(text) {
+        ta.value = text;
+        ta.select();
+        ta.setSelectionRange(0, text.length);
         let success = false;
         try {
-          hiddenTa.value = text;
-          window.focus();
-          hiddenTa.focus();
-          hiddenTa.select();
-          hiddenTa.setSelectionRange(0, text.length);
           success = document.execCommand("copy");
         } catch (_) {}
-
         if (!success && navigator.clipboard && navigator.clipboard.writeText) {
-          try {
-            await navigator.clipboard.writeText(text);
-            success = true;
-          } catch (_) {}
+          navigator.clipboard.writeText(text);
+          success = true;
         }
-
         return success;
       }
 
@@ -107,9 +99,9 @@
         }
       }
 
-      copyBtn.addEventListener("click", async () => {
+      copyBtn.addEventListener("click", () => {
         if (!currentPayload) return;
-        const success = await copyText(currentPayload.text);
+        const success = execCopy(currentPayload.text);
         if (success) {
           copyBtn.textContent = "✓ Copied!";
           copyBtn.classList.add("success");
@@ -121,7 +113,7 @@
         }
       });
 
-      window.addEventListener("message", async (event) => {
+      window.addEventListener("message", (event) => {
         const message = event.data.pluginMessage;
         if (!message) return;
 
@@ -130,7 +122,10 @@
         }
 
         if (message.type === "copy") {
-          post({ type: "copy-result", success: await copyText(message.text) });
+          setTimeout(() => {
+            const success = execCopy(message.text);
+            post({ type: "copy-done", success });
+          }, 30);
         }
       });
 
