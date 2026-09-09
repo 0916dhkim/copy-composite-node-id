@@ -37,7 +37,6 @@ ${id}` : id;
         }
         if (message.type === "copied") {
           figma.notify(`\u{1F4CB} Copied composite node ID for "${message.name || "selection"}"`);
-          figma.closePlugin();
         }
       };
       figma.on("selectionchange", updateSelection);

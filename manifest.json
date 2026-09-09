@@ -5,9 +5,13 @@
   "main": "dist/code.js",
   "ui": "dist/ui.html",
   "editorType": ["figma", "dev"],
+  "capabilities": ["inspect", "vscode"],
   "enablePrivatePluginApi": true,
   "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": ["none"]
-  }
+  },
+  "menu": [
+    { "name": "Open Copy Widget", "command": "open-widget" }
+  ]
 }

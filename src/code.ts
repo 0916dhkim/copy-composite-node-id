@@ -43,7 +43,6 @@ function run(): void {
       }
       if (message.type === "copied") {
         figma.notify(`📋 Copied composite node ID for "${message.name || "selection"}"`);
-        figma.closePlugin();
       }
     };
 
