@@ -48,11 +48,21 @@ function copySelectedNodeAndClose(): void {
     return;
   }
 
-  // An invisible iframe provides browser clipboard access for quick actions.
-  figma.showUI(uiHtml, { visible: false, themeColors: true });
+  // A 0x0 offscreen UI is required so the browser DOM allows clipboard focus and copy
+  figma.showUI(uiHtml, { visible: true, width: 0, height: 0 });
+
+  let sent = false;
+  const sendCopy = () => {
+    if (sent) return;
+    sent = true;
+    figma.ui.postMessage({ type: "copy", text: payload.text });
+  };
+
+  sendCopy();
+
   figma.ui.onmessage = (message) => {
     if (message.type === "ready") {
-      figma.ui.postMessage({ type: "copy", text: payload.text });
+      sendCopy();
     }
 
     if (message.type === "copy-result") {
@@ -65,7 +75,11 @@ function copySelectedNodeAndClose(): void {
   };
 }
 
-if (figma.mode === "inspect") {
+// When invoked from right-click / menu command, figma.command is "copy".
+// When launched from the Dev Mode inspect sidebar, figma.command is empty and figma.mode is "inspect".
+if (figma.command === "copy" || figma.mode === "default") {
+  copySelectedNodeAndClose();
+} else if (figma.mode === "inspect") {
   showInspectPanel();
 } else {
   copySelectedNodeAndClose();
