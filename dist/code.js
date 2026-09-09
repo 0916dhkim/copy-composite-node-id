@@ -21,56 +21,21 @@ ${id}` : id;
     return node ? getCopyPayload(node) : null;
   }
   function showInspectPanel() {
-    figma.showUI(ui_default, { themeColors: true, height: 48 });
-    const updateSelection = () => {
-      figma.ui.postMessage({ type: "selection", payload: getSelectionPayload() });
-    };
-    figma.ui.onmessage = (message) => {
-      if (message.type === "ready") {
-        updateSelection();
-      }
-    };
-    figma.on("selectionchange", updateSelection);
-  }
-  function copySelectedNodeAndClose() {
     try {
-      const payload = getSelectionPayload();
-      console.log("[CopyPlugin] copySelectedNodeAndClose payload:", payload);
-      if (!payload) {
-        figma.closePlugin("\u26A0\uFE0F Select a layer first");
-        return;
-      }
+      figma.showUI(ui_default, { themeColors: true, height: 48 });
+      const updateSelection = () => {
+        figma.ui.postMessage({ type: "selection", payload: getSelectionPayload() });
+      };
       figma.ui.onmessage = (message) => {
-        console.log("[CopyPlugin] onmessage received from UI:", message);
-        if (message.type === "copy-done") {
-          if (message.success) {
-            figma.closePlugin(`\u{1F4CB} Copied composite node ID for "${payload.name}"`);
-          } else {
-            figma.closePlugin(`\u26A0\uFE0F Clipboard write failed for "${payload.name}"`);
-          }
+        if (message.type === "ready") {
+          updateSelection();
         }
       };
-      figma.showUI(ui_default, { width: 1, height: 1 });
-      console.log("[CopyPlugin] showUI called, posting copy message");
-      figma.ui.postMessage({ type: "copy", text: payload.text });
+      figma.on("selectionchange", updateSelection);
     } catch (err) {
-      console.error("[CopyPlugin] copySelectedNodeAndClose error:", err);
+      console.error("[CopyPlugin] Error opening inspect panel:", err);
       figma.notify("Error: " + (err?.message || String(err)), { error: true });
     }
   }
-  try {
-    console.log("[CopyPlugin] Main thread started. command:", figma.command, "mode:", figma.mode, "editorType:", figma.editorType);
-    if (figma.command === "open-widget") {
-      showInspectPanel();
-    } else if (figma.command === "copy") {
-      copySelectedNodeAndClose();
-    } else if (figma.mode === "inspect") {
-      showInspectPanel();
-    } else {
-      copySelectedNodeAndClose();
-    }
-  } catch (err) {
-    console.error("[CopyPlugin] Top-level error:", err);
-    figma.notify("Error: " + (err?.message || String(err)), { error: true });
-  }
+  showInspectPanel();
 })();

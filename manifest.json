@@ -10,9 +10,5 @@
   "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": ["none"]
-  },
-  "menu": [
-    { "name": "Copy link + node ID", "command": "copy" },
-    { "name": "Open inspect widget", "command": "open-widget" }
-  ]
+  }
 }
