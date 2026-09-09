@@ -54,7 +54,9 @@ ${id}` : id;
       }
     };
   }
-  if (figma.command === "copy" || figma.mode === "default") {
+  if (figma.command === "open-widget") {
+    showInspectPanel();
+  } else if (figma.command === "copy") {
     copySelectedNodeAndClose();
   } else if (figma.mode === "inspect") {
     showInspectPanel();

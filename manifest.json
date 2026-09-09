@@ -12,6 +12,7 @@
     "allowedDomains": ["none"]
   },
   "menu": [
-    { "name": "Copy composite node ID", "command": "copy" }
+    { "name": "Copy link + node ID", "command": "copy" },
+    { "name": "Open inspect widget", "command": "open-widget" }
   ]
 }

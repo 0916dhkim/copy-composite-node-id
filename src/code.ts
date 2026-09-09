@@ -67,9 +67,13 @@ function copySelectedNodeAndClose(): void {
   };
 }
 
-// When invoked from right-click / menu command, figma.command is "copy".
-// When launched from the Dev Mode inspect sidebar, figma.command is empty and figma.mode is "inspect".
-if (figma.command === "copy" || figma.mode === "default") {
+// When invoked from right-click:
+// - "Copy link + node ID" sets figma.command = "copy"
+// - "Open inspect widget" sets figma.command = "open-widget"
+// When launched directly from Dev Mode Plugins sidebar, figma.command is empty and figma.mode is "inspect".
+if (figma.command === "open-widget") {
+  showInspectPanel();
+} else if (figma.command === "copy") {
   copySelectedNodeAndClose();
 } else if (figma.mode === "inspect") {
   showInspectPanel();
