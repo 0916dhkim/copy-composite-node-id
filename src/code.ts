@@ -26,6 +26,8 @@ function getSelectionPayload(): CopyPayload | null {
 
 function run(): void {
   try {
+    console.log("[CopyPlugin] Started. Command:", figma.command, "Mode:", figma.mode, "Selection count:", figma.currentPage.selection.length);
+
     figma.showUI(uiHtml, {
       width: 260,
       height: 48,
@@ -34,10 +36,13 @@ function run(): void {
     });
 
     const updateSelection = () => {
-      figma.ui.postMessage({ type: "selection", payload: getSelectionPayload() });
+      const payload = getSelectionPayload();
+      console.log("[CopyPlugin] Sending selection to UI:", payload ? payload.name : "null");
+      figma.ui.postMessage({ type: "selection", payload });
     };
 
     figma.ui.onmessage = (message) => {
+      console.log("[CopyPlugin] Received message from UI:", message);
       if (message.type === "ready") {
         updateSelection();
       }
@@ -46,6 +51,8 @@ function run(): void {
       }
     };
 
+    // Send selection immediately AND on ready AND on selection changes
+    updateSelection();
     figma.on("selectionchange", updateSelection);
   } catch (err: any) {
     console.error("[CopyPlugin] Error opening widget:", err);

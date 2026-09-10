@@ -96,6 +96,7 @@
       }
 
       function updateUI(payload) {
+        console.log("[CopyUI] updateUI received payload:", payload);
         currentPayload = payload;
         clearTimeout(resetTimer);
         copyBtn.classList.remove("success");
@@ -110,7 +111,11 @@
       }
 
       copyBtn.addEventListener("click", () => {
-        if (!currentPayload) return;
+        console.log("[CopyUI] Button clicked. currentPayload:", currentPayload);
+        if (!currentPayload) {
+          console.warn("[CopyUI] Click ignored: no layer selected");
+          return;
+        }
         const success = execCopy(currentPayload.text);
         if (success) {
           copyBtn.textContent = "✓ Copied!";
@@ -120,6 +125,13 @@
             copyBtn.classList.remove("success");
             copyBtn.textContent = "Copy composite node ID";
           }, 1200);
+          post({ type: "copied", name: currentPayload.name });
+        } else {
+          copyBtn.textContent = "Copy failed";
+          clearTimeout(resetTimer);
+          resetTimer = setTimeout(() => {
+            copyBtn.textContent = "Copy composite node ID";
+          }, 1500);
         }
       });
 
