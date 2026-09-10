@@ -50,5 +50,16 @@ ${id}` : id;
       figma.notify("Error: " + (err?.message || String(err)), { error: true });
     }
   }
-  run();
+  try {
+    console.log("[CopyPlugin] Entry. command:", figma.command, "mode:", figma.mode, "editorType:", figma.editorType);
+    if (figma.command === "about") {
+      figma.notify("Copy composite node ID v1.0.0");
+      figma.closePlugin();
+    } else {
+      run();
+    }
+  } catch (err) {
+    console.error("[CopyPlugin] Fatal error:", err);
+    figma.notify("Error: " + (err?.message || String(err)), { error: true });
+  }
 })();
