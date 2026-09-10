@@ -10,9 +10,5 @@
   "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": ["none"]
-  },
-  "menu": [
-    { "name": "Open Widget", "command": "open-widget" },
-    { "name": "About", "command": "about" }
-  ]
+  }
 }
